@@ -82,7 +82,7 @@ func (lr *LogRecord) String() string {
 // need to call out to redis each time. We'll probably build a proper cache or
 // use memcache for this at some point.
 type RecordCache struct {
-	domains map[string]LogRecord // An array of LogRecords mapped by domain
+	domains map[string]LogRecord
 }
 
 // Lookup LogRecords in our cache using domain
