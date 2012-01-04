@@ -4,11 +4,6 @@ include $(GOROOT)/src/Make.inc
 
 TARG=warfield
 GOFILES=\
-	main.go\
+	warfield.go\
 
 include $(GOROOT)/src/Make.cmd
-
-VERSION=$(shell git describe --tags --always)
-
-tar: clean $(TARG)
-	tar -czf $(TARG)-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz $(TARG) README.md
