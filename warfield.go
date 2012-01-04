@@ -32,6 +32,7 @@ func Usage() {
 // Get CLOUD early and export our regex for testing
 var (
 	cloud = os.Getenv("CLOUD")
+	raddr = os.Getenv("HTTP_REDIS_MASTER_URL")
 	Re    = regexp.MustCompile(`^<([^ ]+)>[0-9] [^ ]+ [a-zA-Z]+ [0-9]+ [^ ]+ [^ ]+ nginx: [^ ]+ [^ ]+ [^ ]+ \[.*\] (\".*\" [0-9]+ [0-9]+ \".*\" \".*\") (.*)$`)
 )
 
@@ -134,11 +135,6 @@ func main() {
 	// Initialize our cache
 	rc := &RecordCache{domains: make(map[string]LogRecord)}
 
-	// env variable containing our redis address
-	var (
-		raddr = os.Getenv("HTTP_REDIS_MASTER_URL")
-	)
-
 	if raddr == "" {
 		raddr = "redis://localhost:6379"
 	}
@@ -182,7 +178,7 @@ func main() {
 
 		go func() {
 			// Serve forever
-			err := recvServe(conn, syslog, rc, Re, redis)
+			err := recvServe(conn, syslog, rc, redis)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
@@ -190,7 +186,7 @@ func main() {
 	}
 }
 
-func recvServe(r io.Reader, w io.Writer, rc *RecordCache, re *regexp.Regexp, redis *godis.Client) os.Error {
+func recvServe(r io.Reader, w io.Writer, rc *RecordCache, redis *godis.Client) os.Error {
 	nr, err := bufio.NewReaderSize(r, 4096)
 	if err != nil {
 		panic(err)
@@ -204,7 +200,7 @@ func recvServe(r io.Reader, w io.Writer, rc *RecordCache, re *regexp.Regexp, red
 		}
 
 		// Cast the buffer to a string
-		groups := re.FindStringSubmatch(string(line))
+		groups := Re.FindStringSubmatch(string(line))
 		// If we didn't match anything, grab next line
 		if len(groups) == 0 {
 			continue
